@@ -1,42 +1,17 @@
+'use client';
+
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { RouteOption } from '@/lib/types/route';
 import { transportModes } from '@/lib/mock/transportModes';
 import { formatDuration, formatCurrency } from '@/lib/utils';
+import { RouteTagBadge } from './RouteTagBadge';
 
 interface RouteCardProps {
   route: RouteOption;
   isSelected: boolean;
   onSelect: (routeId: string) => void;
 }
-
-const getTagBadge = (tag: RouteOption['tag']) => {
-  if (!tag) return null;
-
-  const tagConfig = {
-    tercepat: {
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600',
-      label: 'Tercepat'
-    },
-    termurah: {
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-600',
-      label: 'Termurah'
-    },
-    minim_transit: {
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-600',
-      label: 'Minim Transit'
-    }
-  };
-
-  const config = tagConfig[tag];
-  return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.bgColor} ${config.textColor}`}>
-      {config.label}
-    </span>
-  );
-};
 
 const getModeIcon = (modeId: string): string => {
   const iconMap: Record<string, string> = {
@@ -50,6 +25,13 @@ const getModeIcon = (modeId: string): string => {
 };
 
 export function RouteCard({ route, isSelected, onSelect }: RouteCardProps) {
+  const router = useRouter();
+
+  const handleNavigateToDetail = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/cari-rute/${route.id}`);
+  };
+
   return (
     <div
       onClick={() => onSelect(route.id)}
@@ -61,7 +43,7 @@ export function RouteCard({ route, isSelected, onSelect }: RouteCardProps) {
       {/* Header */}
       <div className="flex justify-between items-start mb-3">
         <h3 className="font-semibold text-neutral-900">{route.label}</h3>
-        {getTagBadge(route.tag)}
+        <RouteTagBadge tag={route.tag} />
       </div>
 
       {/* Transport Mode Icons */}
@@ -108,17 +90,23 @@ export function RouteCard({ route, isSelected, onSelect }: RouteCardProps) {
 
       {/* Chevron */}
       <div className="flex justify-end">
-        <svg
-          className="w-5 h-5 text-neutral-400"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+        <button
+          onClick={handleNavigateToDetail}
+          className="p-1 rounded-full hover:bg-neutral-100 transition-colors"
+          aria-label="Lihat detail rute"
         >
-          <path d="M9 18l6-6-6-6" />
-        </svg>
+          <svg
+            className="w-5 h-5 text-neutral-400"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
       </div>
     </div>
   );

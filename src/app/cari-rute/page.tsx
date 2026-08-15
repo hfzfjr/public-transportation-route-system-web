@@ -7,8 +7,7 @@ import { RouteList } from '@/components/route-search/RouteList';
 import { RouteFilterMenu } from '@/components/route-search/RouteFilterMenu';
 import { MapPlaceholder } from '@/components/map/MapPlaceholder';
 import { routes } from '@/lib/mock/routes';
-import { transportModes } from '@/lib/mock/transportModes';
-import { stops } from '@/lib/mock/stops';
+import { transformRouteToMapMarkers, transformRouteToMapPolylines } from '@/lib/utils/mapDataTransform';
 import { MapViewerMarker, MapViewerPolyline } from '@/components/map/MapViewer';
 
 // Dynamic import with SSR disabled untuk menghindari error Leaflet di server
@@ -41,51 +40,7 @@ export default function CariRutePage() {
     if (!selectedRoute) {
       return [];
     }
-
-    const markers: MapViewerMarker[] = [];
-
-    // Cari koordinat untuk origin dan destination
-    const originStop = stops.find(s => s.name === selectedRoute.originStopName);
-    const destinationStop = stops.find(s => s.name === selectedRoute.destinationStopName);
-
-    if (originStop) {
-      markers.push({
-        id: 'origin',
-        position: [originStop.latitude, originStop.longitude],
-        label: selectedRoute.originStopName,
-        type: 'origin'
-      });
-    }
-
-    if (destinationStop) {
-      markers.push({
-        id: 'destination',
-        position: [destinationStop.latitude, destinationStop.longitude],
-        label: selectedRoute.destinationStopName,
-        type: 'destination'
-      });
-    }
-
-    // Process segments untuk transit points
-    selectedRoute.segments.forEach((segment, index) => {
-      const mode = transportModes.find(m => m.id === segment.modeId);
-      const fromStop = stops.find(s => s.name === segment.fromStopName);
-
-      if (fromStop && mode) {
-        // Tambahkan transit point (kecuali origin dan destination yang sudah ditambah)
-        if (index > 0 && index < selectedRoute.segments.length) {
-          markers.push({
-            id: `transit-${segment.id}`,
-            position: [fromStop.latitude, fromStop.longitude],
-            label: segment.fromStopName,
-            type: 'transit',
-            colorHex: mode.colorHex
-          });
-        }
-      }
-    });
-
-    return markers;
+    return transformRouteToMapMarkers(selectedRoute);
   }, [selectedRoute]);
 
   // Transform selected route ke MapViewer polylines
@@ -93,28 +48,7 @@ export default function CariRutePage() {
     if (!selectedRoute) {
       return [];
     }
-
-    const polylines: MapViewerPolyline[] = [];
-
-    // Process segments untuk polylines
-    selectedRoute.segments.forEach((segment) => {
-      const mode = transportModes.find(m => m.id === segment.modeId);
-      const fromStop = stops.find(s => s.name === segment.fromStopName);
-      const toStop = stops.find(s => s.name === segment.toStopName);
-
-      if (fromStop && toStop && mode) {
-        polylines.push({
-          id: `polyline-${segment.id}`,
-          positions: [
-            [fromStop.latitude, fromStop.longitude],
-            [toStop.latitude, toStop.longitude]
-          ],
-          colorHex: mode.colorHex
-        });
-      }
-    });
-
-    return polylines;
+    return transformRouteToMapPolylines(selectedRoute);
   }, [selectedRoute]);
 
   const handleSelectRoute = (routeId: string) => {
